@@ -3,6 +3,9 @@ import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 import { useNavigate } from "react-router-dom";
 
 const validate = (values) => {
@@ -36,19 +39,23 @@ const Login = () => {
       console.log(JSON.stringify(values, null, 2));
       try {
         const res = await axios.post(
-          "http://localhost:8000/api/user-login",
+          "https://hubcredo-task.onrender.com/api/user-login",
           values
         );
+        showToastSuccessMsg();
+
         console.log("response", res.data);
         Cookies.set("jwt_token", res.data.token, {
           expires: 30,
           path: "/",
         });
         console.log("succeed");
-
-        navigate("/", { state: res.data.userData });
+        setTimeout(() => {
+          navigate("/", { state: res.data.userData });
+        }, 600);
       } catch (error) {
         console.log("login error", error);
+        showToastErrorMsg();
         // console.log(error.response.data.error, "ERR");
         setErrorInfo(error.response.data.error);
       }
@@ -62,8 +69,24 @@ const Login = () => {
       navigate("/");
     }
   }, [navigate]);
+
+  const showToastSuccessMsg = () => {
+    toast.success("Login Success !", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
+  const showToastErrorMsg = () => {
+    toast.error("Invalid Credentials !", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <ToastContainer />
       <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
           Please Login Here

@@ -3,6 +3,8 @@ import { useFormik } from "formik";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const validate = (values) => {
   const errors = {};
@@ -56,11 +58,29 @@ const Signup = () => {
       console.log(JSON.stringify(values, null, 2));
       try {
         const res = await axios.post(
-          "http://localhost:8000/api/add-user",
+          "https://hubcredo-task.onrender.com/api/add-user",
           values
         );
-        console.log("signup response", res.data);
 
+        console.log("signup response", res.data);
+        showToastSuccessMsg();
+        const { username, email, contact } = values;
+        const user = {
+          name: username,
+          email: email,
+          contact: contact,
+          createdAt: new Date().toISOString(),
+        };
+        x.resetForm();
+        await axios
+          .post(
+            "https://krishnakotu22.app.n8n.cloud/webhook/new-user-signup",
+            user,
+            {
+              headers: { "x-signup-secret": "mySecret123" },
+            }
+          )
+          .catch(() => {});
         console.log("succeed");
 
         navigate("/login");
@@ -68,12 +88,28 @@ const Signup = () => {
         console.log("login error", error);
         console.log(error.response.data.error, "ERR");
         setErrorInfo(error.response.data.error);
+        showToastErrorMsg();
       }
-      x.resetForm();
     },
   });
+
+  const showToastSuccessMsg = () => {
+    toast.success("Signup Success !", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
+  const showToastErrorMsg = () => {
+    toast.error("Server Error !", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+  };
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-2">
+      <ToastContainer />
       <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-4">
         <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">
           Please Signup Here
